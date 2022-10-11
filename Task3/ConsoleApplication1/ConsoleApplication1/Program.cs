@@ -112,6 +112,11 @@ namespace ConsoleApplication1
                         {
                             cur_pos++;
                         }
+
+                        else if (word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '!' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '>' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '<' && word_char[cur_pos + 1] == '=')
+                        {
+                            CurCond = "DLM";
+                        }
                         else if(word_char[cur_pos]==':')
                         {
                             CurCond = "ASGN";
@@ -122,11 +127,7 @@ namespace ConsoleApplication1
                             buf_word = "";
                             CurCond = "ID";
                         }
-                        else if (word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=')
-                        {
-                            CurCond = "DLM";
-                        }
-                        else if(word_char[cur_pos]=='-'|| word_char[cur_pos] =='+' || word_char[cur_pos] == '.'||IsNumeric(word_char[cur_pos]))
+                        else if (word_char[cur_pos] == '-' || word_char[cur_pos] == '+' || word_char[cur_pos] == '.' || IsNumeric(word_char[cur_pos]))
                         {
                             buf_num = "";
                             CurCond = "NM";
@@ -221,22 +222,22 @@ namespace ConsoleApplication1
                             cur_pos++;
                             cur_lexem++;
                         }
-                        else if ( word_char[cur_pos] == '<' || word_char[cur_pos] == '>' || word_char[cur_pos] == '=')
+                        else if (word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '!' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '>' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '<' && word_char[cur_pos + 1] == '=')
+                        {
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = Convert.ToString(cur_lexem + 1);
+                            lexems[cur_lexem, 1] = Convert.ToString(word_char[cur_pos]) + Convert.ToString(word_char[cur_pos + 1]);
+                            lexems[cur_lexem, 2] = "Операция";
+                            cur_pos++;
+                            cur_pos++;
+                            cur_lexem++;
+                        }
+                        else if ( word_char[cur_pos] == '<' || word_char[cur_pos] == '>')
                         {
                             CurCond = "H";
                             lexems[cur_lexem, 0] = Convert.ToString(cur_lexem + 1);
                             lexems[cur_lexem, 1] = Convert.ToString(word_char[cur_pos]);
                             lexems[cur_lexem, 2] = "Операция";
-                            cur_pos++;
-                            cur_lexem++;
-                        }
-                        else if(word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=')
-                        {
-                            CurCond = "H";
-                            lexems[cur_lexem, 0] = Convert.ToString(cur_lexem + 1);
-                            lexems[cur_lexem, 1] = Convert.ToString(word_char[cur_pos])+Convert.ToString(word_char[cur_pos+1]);
-                            lexems[cur_lexem, 2] = "Операция";
-                            cur_pos++;
                             cur_pos++;
                             cur_lexem++;
                         }
