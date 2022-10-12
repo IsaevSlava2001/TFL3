@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Diagnostics;
 
 namespace ConsoleApplication1
 {
@@ -72,15 +73,10 @@ namespace ConsoleApplication1
             string buf_num = "";
             string[,] lexems = new string[100,3];
             string[] key_word = new string[100];
-            key_word[0] = "for";
-            key_word[1] = "do";
-            key_word[2] = "int";
-            key_word[3] = "print";
-            key_word[4] = "scanf";
-            int key_current = 5;
+            string[] world = new string[100];
             int cur_lexem = 0;
             string CurCond = "H";
-            Console.WriteLine("Введите номер команды\n1.Ввод строки вручную\n2.Ввод строки из файла");
+            Console.WriteLine("Введите номер команды\n1.Ввод строки вручную\n2.Ввод строки из файла\n3.Изменить файл с кодом\n4.Изменить файл с кодовыми словами");
             int g = Convert.ToInt32(Console.ReadLine());
             switch(g)
             {
@@ -93,6 +89,14 @@ namespace ConsoleApplication1
                     Console.WriteLine("Считывание строки из файла.\nДля продолжения нажмите Enter");
                     Console.ReadLine();
                     break;
+                case 3:
+                    Process.Start("notepad.exe","code.txt");
+                    Environment.Exit(0);
+                    break;
+                case 4:
+                    Process.Start("notepad.exe","KeyWords.txt");
+                    Environment.Exit(0);
+                    break;
                 default:
                     Console.WriteLine("Введен неверный номер команды.\nДля продолжение нажмите Enter");
                     Console.ReadLine();
@@ -101,6 +105,7 @@ namespace ConsoleApplication1
             }
             char[] word_char = new char[word.Length];
             word_char = word.ToCharArray();
+            key_word = File.ReadAllLines("KeyWords.txt");
             Console.WriteLine("Текущий символ\tТекущее состояние");
             while (cur_pos<word_char.Length)
             {
@@ -108,11 +113,10 @@ namespace ConsoleApplication1
                 {
                     case "H":
                         Console.Write(word_char[cur_pos]+"\t\t");
-                        if (word_char[cur_pos] == '\t' || word_char[cur_pos] == '\n' || word_char[cur_pos] == ' ')
+                        if (word_char[cur_pos] == '\t' || word_char[cur_pos] == '\n' || word_char[cur_pos] == ' '||word_char[cur_pos]=='\r')
                         {
-                            cur_pos++;
+                            cur_pos++; Console.WriteLine(CurCond);
                         }
-
                         else if (word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '!' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '>' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '<' && word_char[cur_pos + 1] == '=')
                         {
                             CurCond = "DLM";
