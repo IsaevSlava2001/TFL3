@@ -13,7 +13,7 @@ namespace ConsoleApplication1
     {
         public static bool IsLetter(char a)
         {
-            char[] letters = new char[52] { 'a', 'b', 'c', 'd', 'e', 'f', 'j', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'J', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+            char[] letters = new char[52] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
             foreach(var s in letters)
             {
                 if(a==s)
@@ -67,6 +67,7 @@ namespace ConsoleApplication1
         }
         static void Main(string[] args)
         {
+            Console.Clear();
             string word="";
             int cur_pos = 0;
             string buf_word = "";
@@ -76,7 +77,7 @@ namespace ConsoleApplication1
             string[] world = new string[100];
             int cur_lexem = 0;
             string CurCond = "H";
-            Console.WriteLine("Введите номер команды\n1.Ввод строки вручную\n2.Ввод строки из файла\n3.Изменить файл с кодом\n4.Изменить файл с кодовыми словами");
+            Console.WriteLine("Введите номер команды\n1.Ввод строки вручную\n2.Ввод строки из файла\n3.Изменить файл с кодом\n4.Изменить файл с кодовыми словами\n5.Выход");
             int g = Convert.ToInt32(Console.ReadLine());
             switch(g)
             {
@@ -91,11 +92,31 @@ namespace ConsoleApplication1
                     break;
                 case 3:
                     Process.Start("notepad.exe","code.txt");
-                    Environment.Exit(0);
+                    Main(world);
                     break;
                 case 4:
                     Process.Start("notepad.exe","KeyWords.txt");
-                    Environment.Exit(0);
+                    Main(world);
+                    break;
+                case 5:
+                    Console.WriteLine("Вы уверены, что хотите выйти? Введите y/n");
+                    string k = Console.ReadLine().ToLower();
+                    char j = Convert.ToChar(k);
+                    if(j=='y')
+                    {
+                        Environment.Exit(0);
+                    }
+                    else if(j=='n')
+                    {
+                        Main(world);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Ошибка во вводе");
+                        Console.ReadLine();
+                        Main(world);
+                    }
+                   
                     break;
                 default:
                     Console.WriteLine("Введен неверный номер команды.\nДля продолжение нажмите Enter");
@@ -115,7 +136,7 @@ namespace ConsoleApplication1
                         Console.Write(word_char[cur_pos]+"\t\t");
                         if (word_char[cur_pos] == '\t' || word_char[cur_pos] == '\n' || word_char[cur_pos] == ' '||word_char[cur_pos]=='\r')
                         {
-                            cur_pos++; Console.WriteLine(CurCond);
+                            cur_pos++;
                         }
                         else if (word_char[cur_pos] == '+' && word_char[cur_pos + 1] == '+' || word_char[cur_pos] == '-' && word_char[cur_pos + 1] == '-' || word_char[cur_pos] == '=' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '!' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '>' && word_char[cur_pos + 1] == '=' || word_char[cur_pos] == '<' && word_char[cur_pos + 1] == '=')
                         {
@@ -265,6 +286,7 @@ namespace ConsoleApplication1
             }
 
             Console.ReadLine();
+            Main(world);
         }
     }
 }
