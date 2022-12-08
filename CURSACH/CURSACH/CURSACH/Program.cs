@@ -17,6 +17,7 @@ namespace ConsoleApplication1
         public static int cur_ID=1, cur_num = 1;
         public static string[] numbers = new string[100];
         public static bool exp,symb,isLetter = false;
+        public static bool sost = false;
         public static string word = "";
         public static int cur_pos = 0;
         public static char[] word_char = new char[word.Length];
@@ -91,6 +92,9 @@ namespace ConsoleApplication1
                 case 112:
                     str += "Ожидалось продолжение действительного числа.";
                     break;
+                case 113:
+                    str += "Ожидалось продолжение действительного числа.";
+                    break;
             }
             try
             {
@@ -151,6 +155,7 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '<' || word_char[cur_pos] == '/' || word_char[cur_pos] == '>' || word_char[cur_pos] == '!' || word_char[cur_pos] == ':' || word_char[cur_pos] == '=' || word_char[cur_pos] == '-' || word_char[cur_pos] == '[' || word_char[cur_pos] == '{' || word_char[cur_pos] == '}' || word_char[cur_pos] == ')' || word_char[cur_pos] == ',' || word_char[cur_pos] == '*' || word_char[cur_pos] == ']' || word_char[cur_pos] == '%' || word_char[cur_pos] == '$' || word_char[cur_pos] == '(' || word_char[cur_pos] == '+')
                         {
+                            sost = false;
                             CurCond = "DLM";
                         }
                         else if (Char.IsLetter(word_char[cur_pos]))
@@ -166,6 +171,7 @@ namespace ConsoleApplication1
                         }
                         else
                         {
+                            sost = false;
                             CurCond = "DLM";
                         }
                         break;
@@ -191,7 +197,7 @@ namespace ConsoleApplication1
                         }
                         break;
                     case "ID":
-                        if (word_char[cur_pos] == '_' || Char.IsDigit(word_char[cur_pos]) || Char.IsLetter(word_char[cur_pos]))
+                        if (Char.IsDigit(word_char[cur_pos]) || Char.IsLetter(word_char[cur_pos]))
                         {
                             buf_word += word_char[cur_pos];
                             if (GetLexem(buf_word)[0] != 0)
@@ -339,7 +345,7 @@ namespace ConsoleApplication1
                         {
                             buf_num += word_char[cur_pos];
                         }
-                        else if ((word_char[cur_pos] == '+' || word_char[cur_pos - 1] == '-') && exp == false)
+                        else if ((word_char[cur_pos] == '+' || word_char[cur_pos] == '-') && exp == false)
                         {
                             errorLex(106);
                         }
@@ -368,10 +374,17 @@ namespace ConsoleApplication1
                             numbers[cur_num] = buf_num.Remove(buf_num.Length - 1);
                             cur_lexem++;
                             cur_num++;
-                            lexems[cur_lexem, 0] = 2.ToString();
-                            lexems[cur_lexem, 1] = 22.ToString();
-                            cur_lexem++;
+                            if (word_char[cur_pos] == '\n')
+                            {
+                                lexems[cur_lexem, 0] = 2.ToString();
+                                lexems[cur_lexem, 1] = 22.ToString();
+                                cur_lexem++;
+                            }
                             CurCond = "H";
+                        }
+                        else if(Char.IsLetter(word_char[cur_pos])&& (word_char[cur_pos]!='e'|| word_char[cur_pos]!='E'))
+                        {
+                            errorLex(113);
                         }
                         else
                         {
@@ -422,7 +435,6 @@ namespace ConsoleApplication1
                         cur_pos++;
                         break;
                     case "DLM":
-                        bool sost = false;
                         if (word_char[cur_pos] == '(' || word_char[cur_pos] == ')' || word_char[cur_pos] == ':' || word_char[cur_pos] == '[' || word_char[cur_pos] == ',' || word_char[cur_pos] == ']')
                         {
                             CurCond = "H";
@@ -505,6 +517,16 @@ namespace ConsoleApplication1
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
                             cur_pos++;
                             cur_lexem++;
+                        }
+                        else if(Char.IsDigit(word_char[cur_pos])||Char.IsLetter(word_char[cur_pos]))
+                        {
+                            if(sost==true)
+                            {
+                                lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos - 1].ToString())[0].ToString();
+                                lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos - 1].ToString())[1].ToString();
+                                cur_lexem++;
+                            }
+                            CurCond = "H";
                         }
                         else
                         {
