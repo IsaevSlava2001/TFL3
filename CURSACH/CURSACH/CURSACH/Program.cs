@@ -11,17 +11,691 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        public static string[] delimeters = new string[100];
-        public static string[] key_word = new string[100];
-        public static string[] identificators = new string[100];
-        public static int cur_ID=1, cur_num = 1;
-        public static string[] numbers = new string[100];
+        public static void ResizeArray<T>(ref T[,] original, int newCoNum, int newRoNum)
+        {
+            var newArray = new T[newCoNum, newRoNum];
+            int columnCount = original.GetLength(1);
+            int columnCount2 = newRoNum;
+            int columns = original.GetUpperBound(0);
+            for (int co = 0; co <= columns; co++)
+                Array.Copy(original, co * columnCount, newArray, co * columnCount2, columnCount);
+            original = newArray;
+        }
+        public static string[] delimeters;
+        public static string[] key_word;
+        public static string[] identificators = new string[0];
+        public static int cur_ID=0, cur_num = 0;
+        public static string[] numbers = new string[0];
         public static bool exp,symb,isLetter = false;
         public static bool sost = false;
         public static string word = "";
         public static int cur_pos = 0;
         public static char[] word_char = new char[word.Length];
         public static char[] Hex = new char[] {'A','B','C','D','E','F','a','b','c','d','e','f'};
+        public static string cur_lex_lexem_word;
+        public static int cur_lexem_number;
+        public static int cur_lex_lexem = 0;
+        public static string[] declared_identificators=new string[0];
+        public static string[] num;
+        public static string[] val;
+        public static void ErrorParser(int error)
+        {
+            if(error==201)
+            {
+                Console.WriteLine("Неопознаная лексема на позиции "+cur_lex_lexem);
+                Console.ReadLine();
+                Environment.Exit(error);
+            }
+            Console.Write("Ошибка "+error+": ");
+            switch(error)
+            {
+                case 201:
+                    Console.Write(" Ожидался оператор группы умножения");
+                    break;
+                case 202:
+                    Console.Write(" Ожидался оператор или описание");
+                    break;
+                case 203:
+                    Console.Write(" Ожидалось : или перенос строки");
+                    break;
+                case 204:
+                    Console.Write(" Ожидалось end");
+                    break;
+                case 205:
+                    Console.Write(" Ожидался идентификатор");
+                    break;
+                case 206:
+                    Console.Write(" Ожидался dim");
+                    break;
+                case 207:
+                    Console.Write(" Ожидался тип перемнной");
+                    break;
+                case 208:
+                    Console.Write(" Ожидался ]");
+                    break;
+                case 209:
+                    Console.Write(" Ожидался as");
+                    break;
+                case 210:
+                    Console.Write(" Ожидался then");
+                    break;
+                case 211:
+                    Console.Write(" Ожидался to");
+                    break;
+                case 212:
+                    Console.Write(" Ожидалось выражение");
+                    break;
+                case 213:
+                    Console.Write(" Ожидался do");
+                    break;
+                case 214:
+                    Console.Write(" Ожидался оператор");
+                    break;
+                case 215:
+                    Console.Write(" Ожидалась (");
+                    break;
+                case 216:
+                    Console.Write(" Ожидалась операция группы сложения");
+                    break;
+                case 217:
+                    Console.Write(" Ожидалась )");
+                    break;
+                case 218:
+                    Console.Write(" Неопознанная ошибка");
+                    break;
+                case 219:
+                    Console.Write(" Ожидалась операция группы отношения");
+                    break;
+                case 220:
+                    Console.Write(" Неопознанная ошибка");
+                    break;
+                case 221:
+                    Console.Write("Ожидалась унарная операция");
+                    break;
+                case 301:
+                    Console.Write(" Повторное объявление переменной");
+                    break;
+                case 302:
+                    Console.Write(" Использование необъявленной переменной");
+                    break;
+                default:
+                    Console.Write(" Неопознанная ошибка");
+                    break;
+            }
+            Console.Write(". Встречен " + cur_lex_lexem_word + " номер лексемы " + cur_lexem_number);
+            Console.ReadLine();
+            Environment.Exit(error);
+        }
+        public static void Parser()
+        {
+            Fill();
+            prog();     
+        }
+        public static void Fill()
+        {
+            string[] cur_lex = File.ReadAllLines("lexems.txt");
+            num=new string[cur_lex.Length];
+            val = new string[cur_lex.Length]; ;
+            for (int i = 0; i < cur_lex.Length; i++)
+            {
+               num[i] = cur_lex[i].Split(' ')[0];
+               val[i] = cur_lex[i].Split(' ')[1];
+            }
+        }
+        public static void get_lexem()
+        {
+            int counter = 1;
+            try
+            {
+                switch (num[cur_lex_lexem])
+                {
+                    case "1":
+                        foreach (var s in key_word)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem])
+                            {
+                                cur_lex_lexem_word = s;
+                            }
+                            counter++;
+                        }
+                        break;
+                    case "2":
+                        foreach (var s in delimeters)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem])
+                            {
+                                cur_lex_lexem_word = s;
+                            }
+                            counter++;
+                        }
+                        break;
+                    case "3":
+                        foreach (var s in identificators)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem])
+                            {
+                                cur_lex_lexem_word = s;
+                            }
+                            counter++;
+                        }
+                        break;
+                    case "4":
+                        foreach (var s in numbers)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem])
+                            {
+                                cur_lex_lexem_word = s;
+                            }
+                            counter++;
+                        }
+                        break;
+                    default:
+                        ErrorParser(201);
+                        break;
+
+                }
+            }
+            catch(IndexOutOfRangeException ex)
+            {
+                ErrorParser(204);
+            }
+            cur_lexem_number = cur_lex_lexem;
+            cur_lex_lexem++;
+        }
+        public static bool equals(string S)
+        {
+            int counter = 1;
+            switch(num[cur_lex_lexem-1])
+            {
+                case "1":
+                    foreach(var i in key_word)
+                    {
+                        if(i==S)
+                        {
+                            if(counter.ToString()== val[cur_lex_lexem-1])
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        counter++;
+                    } 
+                    break;
+                case "2":
+                    foreach (var i in delimeters)
+                    {
+                        if (i == S)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem-1])
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        counter++;
+                    }
+                    break;
+                case "3":
+                    foreach (var i in identificators)
+                    {
+                        if (i == S)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem-1])
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        counter++;
+                    }
+                    break;
+                case "4":
+                    foreach (var i in numbers)
+                    {
+                        if (i == S)
+                        {
+                            if (counter.ToString() == val[cur_lex_lexem-1])
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }
+                        }
+                        counter++;
+                    }
+                    break;
+                default:
+                    return false;
+                    break;
+            }
+            return false;
+        }
+        public static bool ID()
+        {
+            if(num[cur_lex_lexem-1]=="3")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public static bool numer()
+        {
+            if (num[cur_lex_lexem - 1] == "4")
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public static  void add()
+        {
+            Array.Resize(ref declared_identificators, declared_identificators.Length + 1);
+            declared_identificators[declared_identificators.Length - 1] = val[cur_lex_lexem-1];
+        }
+        public static bool check()
+        {
+            foreach(var i in declared_identificators)
+            {
+                if(identificators[Convert.ToInt32(val[cur_lex_lexem-1])-1]==identificators[Convert.ToInt32(i)-1]&&num[cur_lex_lexem-1]=="3")
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public static void prog() //<программа> = {/ (<описание> | <оператор>) ( : | переход строки) /} end
+        {
+            do
+            {
+                get_lexem();
+                if (equals("dim"))
+                {
+                    descrip();
+                }
+                else if (equals("[") || equals("if") || equals("for") || equals("while") || equals("read") || equals("write")||ID())
+                {
+                    oper();
+                }
+                else if (equals("end"))
+                {
+                    break;
+                }
+                else
+                {
+                    ErrorParser(202);
+                }
+                if (!equals(":") && !equals("\\n"))
+                {
+                    ErrorParser(203);
+                }
+            } while (equals(":") || equals("\\n"));
+            if(!equals("end"))
+            {
+                ErrorParser(204);
+            }
+        }
+        public static void descrip()//<описание>::= dim <идентификатор> {, <идентификатор> } <тип>
+        {
+            if(equals("dim"))
+            {
+                get_lexem();
+                if(check())
+                {
+                    ErrorParser(301);
+                }
+                else
+                {
+                    add();
+                }
+                get_lexem();
+                while(equals(","))
+                {
+                    get_lexem();
+                    if(!ID())
+                    {
+                        ErrorParser(205);
+                    }
+                    else
+                    {
+                        if (check())
+                        {
+                            ErrorParser(301);
+                        }
+                        else
+                        {
+                            add();
+                        }
+                    }
+                    get_lexem();
+                }
+                type();
+            }
+            else
+            {
+                ErrorParser(206);
+            }
+        }
+        public static void oper()//<оператор>::= 	<составной> | <присваивания> | <условный> |<фиксированного_цикла> | <условного_цикла> | <ввода> |<вывода>
+        {
+            if (equals("["))
+            {
+                compare_oper();
+            }
+            else if (equals("if"))
+            {
+                if_oper();
+            }
+            else if (equals("for"))
+            {
+                for_cicle();
+            }
+            else if (equals("while"))
+            {
+                while_cicle();
+            }
+            else if (equals("read"))
+            {
+                input();
+            }
+            else if (equals("write"))
+            {
+                output();
+            }
+            else if (ID())
+            {
+                assign_oper();
+            }
+        }
+        public static void type()//<тип>::= % | ! | $
+        {
+             if(!equals("%")&&!equals("!")&&!equals("$"))
+            {
+                ErrorParser(207);
+            }
+            get_lexem();
+        }
+        public static void compare_oper()//<составной>::= «[» <оператор> { ( : | перевод строки) <оператор> } «]»
+        {
+            do
+            {
+                get_lexem();
+                oper();
+            } while (equals(":") || equals("\\n"));
+            if (!equals("]"))
+                ErrorParser(208);
+            get_lexem();
+        }
+        public static void assign_oper()//<присваивания>::= <идентификатор> as <выражение>
+        {
+            if (!check())
+            {
+                ErrorParser(302);
+            }
+            get_lexem();
+            if(!equals("as"))
+            {
+                ErrorParser(209);
+            }
+            get_lexem();
+            expression();
+        }
+        public static void if_oper()//<условный>::= if <выражение> then <оператор> [ else <оператор>]
+        {
+            get_lexem();
+            expression();
+            if(!equals("then"))
+            {
+                ErrorParser(210);
+            }
+            get_lexem();
+            oper();
+            if(equals("else"))
+            {
+                get_lexem();
+                oper();
+            }
+            get_lexem();
+        }
+        public static void for_cicle()//<фиксированного_цикла>::= for <присваивания> to <выражение> do <оператор>
+        {
+            get_lexem();
+            if(ID())
+            {
+                assign_oper();
+            }
+            if(!equals("to"))
+            {
+                ErrorParser(211);
+            }
+            get_lexem();
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                expression();
+            }
+            else
+            {
+                ErrorParser(212);
+            }
+            if (!equals("do"))
+            {
+                ErrorParser(213);
+            }
+            get_lexem();
+            oper();
+        }
+        public static void while_cicle()//<условного_цикла>::= while <выражение> do <оператор>
+        {
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                expression();
+            }
+            else
+            {
+                ErrorParser(212);
+            }
+            get_lexem();
+            if (!equals("do"))
+            {
+                ErrorParser(213);
+            }
+            if (equals("[") || equals("if") || equals("for") || equals("while") || equals("read") || equals("write") || ID())
+            {
+                oper();
+            }
+            else
+            {
+                ErrorParser(214);
+            }
+        }
+        public static void input()//<ввода>::= read «(»<идентификатор> {, <идентификатор> } «)»
+        {
+            get_lexem();
+            if (!equals("("))
+                ErrorParser(215);
+            get_lexem();
+            if(!ID())
+            {
+                ErrorParser(205);
+            }
+            get_lexem();
+            while(equals(","))
+            {
+                get_lexem();
+                if (ID() && !check())
+                    ErrorParser(302);
+                get_lexem();
+            }
+            if (!equals(")"))
+                ErrorParser(217);
+            get_lexem();
+        }
+        public static void output()//<вывода>::= write «(»<выражение> {, <выражение> } «)»
+        {
+            get_lexem();
+            if (!equals("("))
+                ErrorParser(215);
+            get_lexem();
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                expression();
+                while(equals(","))
+                {
+                    get_lexem();
+                    if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+                    {
+                        if (ID() && !check())
+                            ErrorParser(302);
+                        expression();
+                    }
+                    else
+                    {
+                        ErrorParser(212);
+                    }
+
+                }
+            }
+            else
+            {
+                ErrorParser(212);
+            }
+            if (!equals(")"))
+                ErrorParser(217);
+            get_lexem();
+        }
+        public static void expression()//<выражение>:: =	<операнд>{ <операции_группы_отношения> <операнд> }
+        {
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                operand();
+            }
+            else ErrorParser(214);
+
+            if (equals("< >") || equals("=") || equals("<") || equals("<=") || equals(">") || equals(">="))
+            {
+                ratio();
+                if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+                {
+                    if (ID() && !check())
+                        ErrorParser(302);
+                    operand();
+                }
+                else ErrorParser(214);
+            }
+        }
+        public static void operand()//<операнд>::= 		<слагаемое> {<операции_группы_сложения> <слагаемое>}
+        {
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                summand();
+            }
+            else ErrorParser(214);
+
+            if (equals("+") || equals("-") || equals("or"))
+            {
+                addition();
+                if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+                {
+                    if (ID() && !check())
+                        ErrorParser(302);
+                    summand();
+                }
+                else ErrorParser(214);
+            }
+        }
+        public static void summand()//<слагаемое>::= 	<множитель> {<операции_группы_умножения> <множитель>}
+        {
+            if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+            {
+                if (ID() && !check())
+                    ErrorParser(302);
+                multiply();
+            }
+            else ErrorParser(214);
+
+            if (equals("*") || equals("/") || equals("and"))
+            {
+                multiplicate();
+                if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
+                {
+                    if (ID() && !check())
+                        ErrorParser(302);
+                    multiply();
+                }
+                else ErrorParser(214);
+            }
+        }
+        public static void multiply()//<множитель>::= 	<идентификатор> | <число> | <логическая_константа> |<унарная_операция> <множитель> | «(»<выражение>«)»
+        {
+            if (equals("("))
+            {
+                get_lexem();
+                expression();
+                if (!equals(")"))
+                    ErrorParser(217);
+
+            }
+            else if (equals("not"))
+            {
+                unar();
+            }
+            get_lexem();
+        }
+        public static void number()//<число>:: =		<целое> | <действительное>
+        {
+            if (!numer())
+                ErrorParser(219);
+            get_lexem();
+        }
+        public static void ratio()//<операции_группы_отношения>:: = < > | = | < | <= | > | >=
+        {
+            if (!(equals("< >") || equals("=") || equals("<") || equals("<=") || equals(">") || equals(">=")))
+                ErrorParser(219);
+            get_lexem();
+        }
+        public static void addition()//<операции_группы_сложения>:: = + | - | or
+        {
+            if (!(equals("+") || equals("-") || equals("or")))
+                ErrorParser(216);
+            get_lexem();
+        }
+        public static void multiplicate()//<операции_группы_умножения>::= * | / | and
+        {
+            if (!(equals("*") || equals("/") || equals("and")))
+                ErrorParser(201);
+            get_lexem();
+        }
+        public static void unar()//<унарная_операция>::= not
+        {
+            if (!equals("not"))
+                ErrorParser(223);
+            get_lexem();
+        }
         public static int[] GetLexem(string word)
         {
             int cur = 1;
@@ -120,18 +794,20 @@ namespace ConsoleApplication1
             bool isId = true;
             string buf_word = "";
             string buf_num = "";
-            string[,] lexems = new string[100, 2];
-            string[] key_word_read = new string[100];
-            string[] delimeters_read = new string[100];
+            string[,] lexems = new string[0, 2];
+            string[] key_word_read;
+            string[] delimeters_read;
             int cur_lexem = 0;
             string CurCond = "H";
             word_char = word.ToCharArray();
             key_word_read = File.ReadAllLines("KeyWords.txt");
+            key_word = new string[key_word_read.Length];
             for (int i = 0; i < key_word_read.Length; i++)
             {
                 key_word[i] = key_word_read[i].Split(' ')[0];
             }
             delimeters_read = File.ReadAllLines("Delimeters.txt");
+            delimeters = new string[delimeters_read.Length];
             for (int i = 0; i < delimeters_read.Length; i++)
             {
                 delimeters[i] = delimeters_read[i].Split(' ')[0];
@@ -176,6 +852,7 @@ namespace ConsoleApplication1
                         }
                         break;
                     case "NewLine":
+                        ResizeArray(ref lexems,cur_lexem+1, 2);
                         lexems[cur_lexem, 0] = 2.ToString();
                         lexems[cur_lexem, 1] = 22.ToString();
                         cur_lexem++;
@@ -185,6 +862,7 @@ namespace ConsoleApplication1
                     case "FIN":
                         if (word_char[cur_pos + 1] == 'n' && word_char[cur_pos + 2] == 'd' && word_char.Length == cur_pos + 3)
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             lexems[cur_lexem, 0] = 1.ToString();
                             lexems[cur_lexem, 1] = 7.ToString();
                             cur_lexem++;
@@ -202,6 +880,7 @@ namespace ConsoleApplication1
                             buf_word += word_char[cur_pos];
                             if (GetLexem(buf_word)[0] != 0)
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 cur_pos++;
                                 CurCond = "ID";
                                 lexems[cur_lexem, 0] = GetLexem(buf_word)[0].ToString();
@@ -210,9 +889,10 @@ namespace ConsoleApplication1
                             }
                             else
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 isId = false;
                                 lexems[cur_lexem, 0] = 3.ToString();
-                                lexems[cur_lexem, 1] = cur_ID.ToString();
+                                lexems[cur_lexem, 1] = (cur_ID+1).ToString();
                                 cur_pos++;
                                 CurCond = "ID";
                             }
@@ -221,6 +901,7 @@ namespace ConsoleApplication1
                         {
                             if(!isId)
                             {
+                                Array.Resize(ref identificators, cur_ID + 1);
                                 identificators[cur_ID] = buf_word;
                                 cur_ID++;
                             }
@@ -248,16 +929,54 @@ namespace ConsoleApplication1
                         break;
                     case "BIN":
                         buf_num += word_char[cur_pos];
-                        if (Convert.ToInt32(Convert.ToString(word_char[cur_pos])) > 1 && Convert.ToInt32(Convert.ToString(word_char[cur_pos])) < 8)
+                        if (word_char[cur_pos] == 'O' || word_char[cur_pos] == 'o')
                         {
-                            CurCond = "OCT";
-                        }
-                        else if (word_char[cur_pos] == 'B' || word_char[cur_pos] == 'b')
-                        {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
                             isLetter = true;
                             CurCond = "H";
                             lexems[cur_lexem, 0] = 4.ToString();
-                            lexems[cur_lexem, 1] = cur_num.ToString(); ;
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString(); ;
+                            numbers[cur_num] = GetNum(buf_num, ss.OCT);
+                            cur_lexem++;
+                            cur_num++;
+                        }
+                        else if (word_char[cur_pos] == 'd' || word_char[cur_pos] == 'D')
+                        {
+                            if (word_char[cur_pos] == 'd' && word_char[cur_pos + 1] == 'i')
+                            {
+                                errorLex(107);
+                            }
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
+                            isLetter = true;
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = 4.ToString();
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString();
+                            numbers[cur_num] = buf_num.Remove(buf_num.Length - 1);
+                            cur_lexem++;
+                            cur_num++;
+                        }
+                        else if (word_char[cur_pos] == 'H' || word_char[cur_pos] == 'h')
+                        {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
+                            isLetter = true;
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = 4.ToString();
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString(); ;
+                            numbers[cur_num] = GetNum(buf_num, ss.HEX);
+                            cur_lexem++;
+                            cur_num++;
+                        }
+                        else if (word_char[cur_pos] == 'B' || word_char[cur_pos] == 'b')
+                        {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
+                            isLetter = true;
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = 4.ToString();
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString(); ;
                             numbers[cur_num] = GetNum(buf_num, ss.BIN);
                             cur_lexem++;
                             cur_num++;
@@ -268,11 +987,15 @@ namespace ConsoleApplication1
                             buf_num = buf_num.Remove(buf_num.Length - 1);
                             CurCond = "EXP";
                         }
+                        else if (Convert.ToInt32(Convert.ToString(word_char[cur_pos])) > 1 && Convert.ToInt32(Convert.ToString(word_char[cur_pos])) < 8)
+                        {
+                            CurCond = "OCT";
+                        }
                         else if (word_char[cur_pos] == '0' || word_char[cur_pos] == '1')
                         {
                             CurCond = "BIN";
                         }
-                        else if (Convert.ToInt32(word_char[cur_pos]) > 7 || IsHex(word_char[cur_pos]))
+                        else if (Convert.ToInt32(Convert.ToString(word_char[cur_pos])) > 7 || IsHex(word_char[cur_pos]))
                         {
                             CurCond = "DECHEX";
                         }
@@ -290,11 +1013,41 @@ namespace ConsoleApplication1
                         buf_num += word_char[cur_pos];
                         if (word_char[cur_pos] == 'O' || word_char[cur_pos] == 'o')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
                             isLetter = true;
                             CurCond = "H";
                             lexems[cur_lexem, 0] = 4.ToString();
-                            lexems[cur_lexem, 1] = cur_num.ToString(); ;
+                            lexems[cur_lexem, 1] = (cur_num+1).ToString(); ;
                             numbers[cur_num] = GetNum(buf_num, ss.OCT);
+                            cur_lexem++;
+                            cur_num++;
+                        }
+                        else if(word_char[cur_pos]=='d'||word_char[cur_pos]=='D')
+                        {
+                            if (word_char[cur_pos] == 'd' && word_char[cur_pos + 1] == 'i')
+                            {
+                                errorLex(107);
+                            }
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
+                            isLetter = true;
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = 4.ToString();
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString();
+                            numbers[cur_num] = buf_num.Remove(buf_num.Length - 1);
+                            cur_lexem++;
+                            cur_num++;
+                        }
+                        else if (word_char[cur_pos] == 'H' || word_char[cur_pos] == 'h')
+                        {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
+                            isLetter = true;
+                            CurCond = "H";
+                            lexems[cur_lexem, 0] = 4.ToString();
+                            lexems[cur_lexem, 1] = (cur_num + 1).ToString();
+                            numbers[cur_num] = GetNum(buf_num, ss.HEX);
                             cur_lexem++;
                             cur_num++;
                         }
@@ -304,11 +1057,11 @@ namespace ConsoleApplication1
                             buf_num = buf_num.Remove(buf_num.Length - 1);
                             CurCond = "EXP";
                         }
-                        else if (Convert.ToInt32(word_char[cur_pos]) > 1 && Convert.ToInt32(word_char[cur_pos]) < 8)
+                        else if (Convert.ToInt32(Convert.ToString(word_char[cur_pos])) > 1 && Convert.ToInt32(Convert.ToString(word_char[cur_pos])) < 8)
                         {
                             CurCond = "OCT";
                         }
-                        else if (Convert.ToInt32(word_char[cur_pos]) > 7 || IsHex(word_char[cur_pos]))
+                        else if (Convert.ToInt32(Convert.ToString(word_char[cur_pos])) > 7 || IsHex(word_char[cur_pos]))
                         {
                             CurCond = "DECHEX";
                         }
@@ -358,8 +1111,10 @@ namespace ConsoleApplication1
                             }
                             else
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
+                                Array.Resize(ref numbers, cur_num + 1);
                                 lexems[cur_lexem, 0] = 4.ToString();
-                                lexems[cur_lexem, 1] = cur_num.ToString();
+                                lexems[cur_lexem, 1] = (cur_num+1).ToString();
                                 numbers[cur_num] = buf_num;
                                 cur_lexem++;
                                 cur_num++;
@@ -369,13 +1124,16 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '\n' || word_char[cur_pos] == ':')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
                             lexems[cur_lexem, 0] = 4.ToString();
-                            lexems[cur_lexem, 1] = cur_num.ToString();
+                            lexems[cur_lexem, 1] = (cur_num+1).ToString();
                             numbers[cur_num] = buf_num.Remove(buf_num.Length - 1);
                             cur_lexem++;
                             cur_num++;
                             if (word_char[cur_pos] == '\n')
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 lexems[cur_lexem, 0] = 2.ToString();
                                 lexems[cur_lexem, 1] = 22.ToString();
                                 cur_lexem++;
@@ -396,10 +1154,12 @@ namespace ConsoleApplication1
                         buf_num += word_char[cur_pos];
                         if (word_char[cur_pos] == 'H' || word_char[cur_pos] == 'h')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
                             isLetter = true;
                             CurCond = "H";
                             lexems[cur_lexem, 0] = 4.ToString();
-                            lexems[cur_lexem, 1] = cur_num.ToString(); ;
+                            lexems[cur_lexem, 1] = (cur_num+1).ToString(); ;
                             numbers[cur_num] = GetNum(buf_num, ss.HEX);
                             cur_lexem++;
                             cur_num++;
@@ -410,10 +1170,12 @@ namespace ConsoleApplication1
                             {
                                 errorLex(107);
                             }
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
+                            Array.Resize(ref numbers, cur_num + 1);
                             isLetter = true;
                             CurCond = "H";
                             lexems[cur_lexem, 0] = 4.ToString();
-                            lexems[cur_lexem, 1] = cur_num.ToString();
+                            lexems[cur_lexem, 1] = (cur_num+1).ToString();
                             numbers[cur_num] = buf_num.Remove(buf_num.Length - 1);
                             cur_lexem++;
                             cur_num++;
@@ -437,6 +1199,7 @@ namespace ConsoleApplication1
                     case "DLM":
                         if (word_char[cur_pos] == '(' || word_char[cur_pos] == ')' || word_char[cur_pos] == ':' || word_char[cur_pos] == '[' || word_char[cur_pos] == ',' || word_char[cur_pos] == ']')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -445,6 +1208,7 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '$' || word_char[cur_pos] == '!' || word_char[cur_pos] == '%')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -453,6 +1217,7 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '+' || word_char[cur_pos] == '-' || word_char[cur_pos] == '*' || word_char[cur_pos] == '/')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -465,6 +1230,7 @@ namespace ConsoleApplication1
                             {
                                 if (word_char[cur_pos - 1] == '<' && word_char[cur_pos] == '>')
                                 {
+                                    ResizeArray(ref lexems, cur_lexem + 1, 2);
                                     CurCond = "H";
                                     lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos - 1] + "" + word_char[cur_pos])[0].ToString();
                                     lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -486,6 +1252,7 @@ namespace ConsoleApplication1
                         {
                             if (sost == true)
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 CurCond = "H";
                                 lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos - 1] + "" + word_char[cur_pos])[0].ToString();
                                 lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -495,6 +1262,7 @@ namespace ConsoleApplication1
                             }
                             else
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 CurCond = "H";
                                 lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                                 lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -504,6 +1272,7 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '{')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -512,6 +1281,7 @@ namespace ConsoleApplication1
                         }
                         else if (word_char[cur_pos] == '}')
                         {
+                            ResizeArray(ref lexems, cur_lexem + 1, 2);
                             CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
@@ -522,6 +1292,7 @@ namespace ConsoleApplication1
                         {
                             if(sost==true)
                             {
+                                ResizeArray(ref lexems, cur_lexem + 1, 2);
                                 lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos - 1].ToString())[0].ToString();
                                 lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos - 1].ToString())[1].ToString();
                                 cur_lexem++;
@@ -541,14 +1312,14 @@ namespace ConsoleApplication1
             }
             for (int i = 0; i < cur_lexem; i++)
             {
-                string str = "{ " + lexems[i, 0] + ", " + lexems[i, 1] + " }\n";
+                string str = lexems[i, 0] + " " + lexems[i, 1] + "\n";
                 File.AppendAllText("lexems.txt", str);
             }
             for (int i = 0; i < numbers.Length; i++)
             {
                 if (numbers[i] != null)
                 {
-                    string str = numbers[i] + " " + i + "\n";
+                    string str = numbers[i] + " " + (i+1) + "\n";
                     File.AppendAllText("Numbers.txt", str);
                 }
             }
@@ -556,7 +1327,7 @@ namespace ConsoleApplication1
             {
                 if (identificators[i] != null)
                 {
-                    string str = identificators[i] + " " + i + "\n";
+                    string str = identificators[i] + " " + (i+1) + "\n";
                     File.AppendAllText("Identificators.txt", str);
                 }
             }
@@ -578,6 +1349,8 @@ namespace ConsoleApplication1
                     Console.ReadLine();
                     Lexer();
                     Console.WriteLine("Лексический анализ проведен успешно. Сформирован файл лексем lexems.txt");
+                    Parser();
+                    Console.WriteLine("Синтаксический и семантический анализ проведены успешно.");
                     Console.ReadLine();
                     break;
                 case 3:
