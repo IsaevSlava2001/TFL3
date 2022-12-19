@@ -68,7 +68,7 @@ namespace ConsoleApplication1
                     Console.Write(" Ожидался dim");
                     break;
                 case 207:
-                    Console.Write(" Ожидался тип перемнной");
+                    Console.Write(" Ожидался тип переменной");
                     break;
                 case 208:
                     Console.Write(" Ожидался ]");
@@ -195,7 +195,7 @@ namespace ConsoleApplication1
 
                 }
             }
-            catch(IndexOutOfRangeException ex)
+            catch(IndexOutOfRangeException)
             {
                 ErrorParser(204);
             }
@@ -277,7 +277,6 @@ namespace ConsoleApplication1
                     break;
                 default:
                     return false;
-                    break;
             }
             return false;
         }
@@ -324,6 +323,10 @@ namespace ConsoleApplication1
             do
             {
                 get_lexem();
+                if(equals("{"))
+                {
+                    comment();
+                }
                 if (equals("dim"))
                 {
                     descrip();
@@ -340,19 +343,32 @@ namespace ConsoleApplication1
                 {
                     ErrorParser(202);
                 }
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (!equals(":") && !equals("\\n"))
                 {
+
                     ErrorParser(203);
                 }
             } while (equals(":") || equals("\\n"));
-            if(!equals("end"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!equals("end"))
             {
                 ErrorParser(204);
             }
         }
         public static void descrip()//<описание>::= dim <идентификатор> {, <идентификатор> } <тип>
         {
-            if(equals("dim"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (equals("dim"))
             {
                 get_lexem();
                 if(check())
@@ -364,8 +380,16 @@ namespace ConsoleApplication1
                     add();
                 }
                 get_lexem();
-                while(equals(","))
+                if (equals("{"))
                 {
+                    comment();
+                }
+                while (equals(","))
+                {
+                    if (equals("{"))
+                    {
+                        comment();
+                    }
                     get_lexem();
                     if(!ID())
                     {
@@ -393,6 +417,10 @@ namespace ConsoleApplication1
         }
         public static void oper()//<оператор>::= 	<составной> | <присваивания> | <условный> |<фиксированного_цикла> | <условного_цикла> | <ввода> |<вывода>
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (equals("["))
             {
                 compare_oper();
@@ -424,7 +452,11 @@ namespace ConsoleApplication1
         }
         public static void type()//<тип>::= % | ! | $
         {
-             if(!equals("%")&&!equals("!")&&!equals("$"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!equals("%")&&!equals("!")&&!equals("$"))
             {
                 ErrorParser(207);
             }
@@ -434,21 +466,37 @@ namespace ConsoleApplication1
         {
             do
             {
+                if (equals("{"))
+                {
+                    comment();
+                }
                 get_lexem();
                 oper();
             } while (equals(":") || equals("\\n"));
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!equals("]"))
                 ErrorParser(208);
             get_lexem();
         }
         public static void assign_oper()//<присваивания>::= <идентификатор> as <выражение>
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!check())
             {
                 ErrorParser(302);
             }
             get_lexem();
-            if(!equals("as"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!equals("as"))
             {
                 ErrorParser(209);
             }
@@ -457,33 +505,56 @@ namespace ConsoleApplication1
         }
         public static void if_oper()//<условный>::= if <выражение> then <оператор> [ else <оператор>]
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             get_lexem();
             expression();
-            if(!equals("then"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!equals("then"))
             {
                 ErrorParser(210);
             }
             get_lexem();
             oper();
-            if(equals("else"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (equals("else"))
             {
                 get_lexem();
                 oper();
             }
-            get_lexem();
         }
         public static void for_cicle()//<фиксированного_цикла>::= for <присваивания> to <выражение> do <оператор>
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             get_lexem();
             if(ID())
             {
                 assign_oper();
             }
-            if(!equals("to"))
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!equals("to"))
             {
                 ErrorParser(211);
             }
             get_lexem();
+            if (equals("{"))
+            {
+                comment();
+            }
             if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
             {
                 if (ID() && !check())
@@ -493,6 +564,10 @@ namespace ConsoleApplication1
             else
             {
                 ErrorParser(212);
+            }
+            if (equals("{"))
+            {
+                comment();
             }
             if (!equals("do"))
             {
@@ -503,6 +578,10 @@ namespace ConsoleApplication1
         }
         public static void while_cicle()//<условного_цикла>::= while <выражение> do <оператор>
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
             {
                 if (ID() && !check())
@@ -514,6 +593,10 @@ namespace ConsoleApplication1
                 ErrorParser(212);
             }
             get_lexem();
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!equals("do"))
             {
                 ErrorParser(213);
@@ -529,21 +612,41 @@ namespace ConsoleApplication1
         }
         public static void input()//<ввода>::= read «(»<идентификатор> {, <идентификатор> } «)»
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             get_lexem();
             if (!equals("("))
                 ErrorParser(215);
             get_lexem();
-            if(!ID())
+            if (equals("{"))
+            {
+                comment();
+            }
+            if (!ID())
             {
                 ErrorParser(205);
             }
             get_lexem();
-            while(equals(","))
+            if (equals("{"))
             {
+                comment();
+            }
+            while (equals(","))
+            {
+                if (equals("{"))
+                {
+                    comment();
+                }
                 get_lexem();
                 if (ID() && !check())
                     ErrorParser(302);
                 get_lexem();
+                if (equals("{"))
+                {
+                    comment();
+                }
             }
             if (!equals(")"))
                 ErrorParser(217);
@@ -551,7 +654,15 @@ namespace ConsoleApplication1
         }
         public static void output()//<вывода>::= write «(»<выражение> {, <выражение> } «)»
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             get_lexem();
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!equals("("))
                 ErrorParser(215);
             get_lexem();
@@ -560,9 +671,21 @@ namespace ConsoleApplication1
                 if (ID() && !check())
                     ErrorParser(302);
                 expression();
-                while(equals(","))
+                if (equals("{"))
                 {
+                    comment();
+                }
+                while (equals(","))
+                {
+                    if (equals("{"))
+                    {
+                        comment();
+                    }
                     get_lexem();
+                    if (equals("{"))
+                    {
+                        comment();
+                    }
                     if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
                     {
                         if (ID() && !check())
@@ -580,25 +703,49 @@ namespace ConsoleApplication1
             {
                 ErrorParser(212);
             }
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!equals(")"))
                 ErrorParser(217);
             get_lexem();
         }
         public static void expression()//<выражение>:: =	<операнд>{ <операции_группы_отношения> <операнд> }
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
             {
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (ID() && !check())
                     ErrorParser(302);
                 operand();
             }
             else ErrorParser(214);
 
+            if (equals("{"))
+            {
+                comment();
+            }
             if (equals("< >") || equals("=") || equals("<") || equals("<=") || equals(">") || equals(">="))
             {
                 ratio();
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
                 {
+                    if (equals("{"))
+                    {
+                        comment();
+                    }
                     if (ID() && !check())
                         ErrorParser(302);
                     operand();
@@ -608,6 +755,10 @@ namespace ConsoleApplication1
         }
         public static void operand()//<операнд>::= 		<слагаемое> {<операции_группы_сложения> <слагаемое>}
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
             {
                 if (ID() && !check())
@@ -616,9 +767,17 @@ namespace ConsoleApplication1
             }
             else ErrorParser(214);
 
+            if (equals("{"))
+            {
+                comment();
+            }
             if (equals("+") || equals("-") || equals("or"))
             {
                 addition();
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
                 {
                     if (ID() && !check())
@@ -630,6 +789,10 @@ namespace ConsoleApplication1
         }
         public static void summand()//<слагаемое>::= 	<множитель> {<операции_группы_умножения> <множитель>}
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
             {
                 if (ID() && !check())
@@ -637,10 +800,17 @@ namespace ConsoleApplication1
                 multiply();
             }
             else ErrorParser(214);
-
+            if (equals("{"))
+            {
+                comment();
+            }
             if (equals("*") || equals("/") || equals("and"))
             {
                 multiplicate();
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (ID() || numer() || equals("true") || equals("false") || equals("not") || equals("("))
                 {
                     if (ID() && !check())
@@ -652,13 +822,25 @@ namespace ConsoleApplication1
         }
         public static void multiply()//<множитель>::= 	<идентификатор> | <число> | <логическая_константа> |<унарная_операция> <множитель> | «(»<выражение>«)»
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (equals("("))
             {
                 get_lexem();
                 expression();
+                if (equals("{"))
+                {
+                    comment();
+                }
                 if (!equals(")"))
                     ErrorParser(217);
 
+            }
+            if (equals("{"))
+            {
+                comment();
             }
             else if (equals("not"))
             {
@@ -668,32 +850,60 @@ namespace ConsoleApplication1
         }
         public static void number()//<число>:: =		<целое> | <действительное>
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!numer())
                 ErrorParser(219);
             get_lexem();
         }
         public static void ratio()//<операции_группы_отношения>:: = < > | = | < | <= | > | >=
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!(equals("< >") || equals("=") || equals("<") || equals("<=") || equals(">") || equals(">=")))
                 ErrorParser(219);
             get_lexem();
         }
         public static void addition()//<операции_группы_сложения>:: = + | - | or
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!(equals("+") || equals("-") || equals("or")))
                 ErrorParser(216);
             get_lexem();
         }
         public static void multiplicate()//<операции_группы_умножения>::= * | / | and
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!(equals("*") || equals("/") || equals("and")))
                 ErrorParser(201);
             get_lexem();
         }
         public static void unar()//<унарная_операция>::= not
         {
+            if (equals("{"))
+            {
+                comment();
+            }
             if (!equals("not"))
                 ErrorParser(223);
+            get_lexem();
+        }
+        public static void comment()//<комментарий>::="{"<символ>"}"
+        {
+            while (!equals("}"))
+            {
+                get_lexem();
+            }
             get_lexem();
         }
         public static int[] GetLexem(string word)
@@ -734,7 +944,7 @@ namespace ConsoleApplication1
                     str += "Ожидалось число.";
                     break;
                 case 102:
-                    str += "Ожидалось fin.";
+                    str += "Ожидалось end.";
                     break;
                 case 103:
                     str += "Ожидалось число или e или E или. или b или B.";
@@ -769,6 +979,9 @@ namespace ConsoleApplication1
                 case 113:
                     str += "Ожидалось продолжение действительного числа.";
                     break;
+                case 114:
+                    str += "Ожидалось D или d или B или b или H или h или O или o или . или E или e или число.";
+                    break;
             }
             try
             {
@@ -781,7 +994,7 @@ namespace ConsoleApplication1
                     str += " Встречен " + word_char[cur_pos] + " на позиции " + (cur_pos - 2);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 str += " Встречен конец файла";
             }
@@ -821,7 +1034,7 @@ namespace ConsoleApplication1
                         {
                             cur_pos++;
                         }
-                        else if (word_char[cur_pos] == 'e')
+                        else if (word_char[cur_pos] == 'e'&& word_char[cur_pos+1] == 'n')
                         {
                             CurCond = "FIN";
                         }
@@ -929,6 +1142,10 @@ namespace ConsoleApplication1
                         break;
                     case "BIN":
                         buf_num += word_char[cur_pos];
+                        if(word_char[cur_pos]!='O'&& word_char[cur_pos] != 'o'&& word_char[cur_pos] != 'd'&& word_char[cur_pos] != 'D'&& word_char[cur_pos] != 'H'&& word_char[cur_pos] != 'h'&& word_char[cur_pos] != 'B'&& word_char[cur_pos] != 'b'&& word_char[cur_pos] != 'E'&& word_char[cur_pos] != 'e'&& word_char[cur_pos] != '.'&&!Char.IsDigit(word_char[cur_pos]))
+                        {
+                            errorLex(114);
+                        }
                         if (word_char[cur_pos] == 'O' || word_char[cur_pos] == 'o')
                         {
                             ResizeArray(ref lexems, cur_lexem + 1, 2);
@@ -1011,6 +1228,10 @@ namespace ConsoleApplication1
                         break;
                     case "OCT":
                         buf_num += word_char[cur_pos];
+                        if (word_char[cur_pos] != 'O' && word_char[cur_pos] != 'o' && word_char[cur_pos] != 'd' && word_char[cur_pos] != 'D' && word_char[cur_pos] != 'H' && word_char[cur_pos] != 'h' && word_char[cur_pos] != 'B' && word_char[cur_pos] != 'b' && word_char[cur_pos] != 'E' && word_char[cur_pos] != 'e' && word_char[cur_pos] != '.' && !Char.IsDigit(word_char[cur_pos]))
+                        {
+                            errorLex(114);
+                        }
                         if (word_char[cur_pos] == 'O' || word_char[cur_pos] == 'o')
                         {
                             ResizeArray(ref lexems, cur_lexem + 1, 2);
@@ -1076,7 +1297,7 @@ namespace ConsoleApplication1
                         cur_pos++;
                         break;
                     case "EXP":
-                        if(word_char[cur_pos] == 'd' || word_char[cur_pos] == 'D'|| word_char[cur_pos] == 'h' || word_char[cur_pos] == 'H'|| word_char[cur_pos] == 'o' || word_char[cur_pos] == 'O'|| word_char[cur_pos] == 'b' || word_char[cur_pos] == 'B')
+                        if (word_char[cur_pos] == 'd' || word_char[cur_pos] == 'D'|| word_char[cur_pos] == 'h' || word_char[cur_pos] == 'H'|| word_char[cur_pos] == 'o' || word_char[cur_pos] == 'O'|| word_char[cur_pos] == 'b' || word_char[cur_pos] == 'B')
                         {
                             errorLex(112);
                         }
@@ -1152,6 +1373,10 @@ namespace ConsoleApplication1
                         break;
                     case "DECHEX":
                         buf_num += word_char[cur_pos];
+                        if (word_char[cur_pos] != 'O' && word_char[cur_pos] != 'o' && word_char[cur_pos] != 'd' && word_char[cur_pos] != 'D' && word_char[cur_pos] != 'H' && word_char[cur_pos] != 'h' && word_char[cur_pos] != 'B' && word_char[cur_pos] != 'b' && word_char[cur_pos] != 'E' && word_char[cur_pos] != 'e' && word_char[cur_pos] != '.' && !Char.IsDigit(word_char[cur_pos]))
+                        {
+                            errorLex(114);
+                        }
                         if (word_char[cur_pos] == 'H' || word_char[cur_pos] == 'h')
                         {
                             ResizeArray(ref lexems, cur_lexem + 1, 2);
@@ -1273,7 +1498,6 @@ namespace ConsoleApplication1
                         else if (word_char[cur_pos] == '{')
                         {
                             ResizeArray(ref lexems, cur_lexem + 1, 2);
-                            CurCond = "H";
                             lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos].ToString())[0].ToString();
                             lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos].ToString())[1].ToString();
                             cur_pos++;
@@ -1288,16 +1512,9 @@ namespace ConsoleApplication1
                             cur_pos++;
                             cur_lexem++;
                         }
-                        else if(Char.IsDigit(word_char[cur_pos])||Char.IsLetter(word_char[cur_pos]))
+                        else if (Char.IsDigit(word_char[cur_pos]) || Char.IsLetter(word_char[cur_pos]) || word_char[cur_pos] == ' ' || word_char[cur_pos] == '\n' || word_char[cur_pos] == '\r' || word_char[cur_pos] == '\t')
                         {
-                            if(sost==true)
-                            {
-                                ResizeArray(ref lexems, cur_lexem + 1, 2);
-                                lexems[cur_lexem, 0] = GetLexem(word_char[cur_pos - 1].ToString())[0].ToString();
-                                lexems[cur_lexem, 1] = GetLexem(word_char[cur_pos - 1].ToString())[1].ToString();
-                                cur_lexem++;
-                            }
-                            CurCond = "H";
+                            cur_pos++;
                         }
                         else
                         {
